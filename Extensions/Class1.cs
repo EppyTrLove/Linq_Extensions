@@ -1,55 +1,43 @@
 ﻿using System;
+using System.Drawing;
 
 namespace Extensions
 {
     public static class LinqExtensions
     {
-        public static bool Enshure<TSource>(this IEnumerable<TSource> source, Func<TSource,
+        public static IEnumerable<TSource> Enshure<TSource>(this IEnumerable<TSource> source, Func<TSource,
             bool> predicate)
         {
-            var list = new List<TSource>();
+
             if (source == null)
-            {
                 throw new ArgumentException();
-            }
 
             if (predicate == null)
-            {
                 throw new ArgumentException();
-            }
 
             foreach (TSource element in source)
             {
                 if (predicate(element))
                 {
-                    return true;
+                    yield return element;
                 }
             }
 
-            return false;
+            throw new ArgumentException();
         }
-        public static long EnshureCount<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> predicate)
+        public static IEnumerable<TSource> EnshureCount<TSource>(this IEnumerable<TSource> source,
+            Func<TSource, bool> predicate, long count)
         {
             if (source == null)
-            {
                 throw new ArgumentException();
-            }
 
             if (predicate == null)
-            {
                 throw new ArgumentException();
-            }
 
-            long count = 0;
-            foreach (TSource element in source)
-            {
+            if (source.Count(predicate) != count)
+                throw new Exception();
 
-                if (predicate(element))
-                {
-                    count++;
-                }
-            }
-            return count;
+            return source;
         }
         public static IEnumerable<IEnumerable<TSource>> Batch<TSource>(
                   this IEnumerable<TSource> source, int size)
@@ -69,15 +57,73 @@ namespace Extensions
                 yield return bucket;
             }
         }
-        public static bool IsEmpty<TSource>(this IEnumerable<TSource> source)
+        public static bool IsEmpty<TSource>(this IEnumerable<TSource> source) => source == null || source.Count() == 0;
+
+        public static IEnumerable<TSource> Apply<TSource>(this IEnumerable<TSource> source, Action<TSource> predicate)
         {
-            if (source == null || source.Count() == 0)
+            foreach (TSource element in source)
             {
-                return true;
+                predicate(element);
+                yield return element;
             }
-            return false;
+
         }
+        public static IEnumerable<TSource> Insert<TSource>(this IEnumerable<TSource> source, TSource obj,
+            int position)
+        {
+            source.Insert(obj, position);
+            yield return (TSource)source;
+        }
+        public static IEnumerable<TSource> Disorder<TSource>(this IEnumerable<TSource> source, Random rnd)
 
+        //Fisher and Yates' original method
+        {
+            var buffer = source.ToList();
+            for (int i = 0; i < buffer.Count; i++)
+            {
+                int j = rnd.Next(i, buffer.Count);
+                yield return buffer[j];
+                buffer[j] = buffer[i];
+            }
+        }
+        public static IEnumerable<IEnumerable<TSource>> Split<TSource>(this IEnumerable<TSource> source,
+            TSource separator)
+        {
+            var list = new List<TSource>();
+            var count = 0;
+            foreach (var item in source)
+            {
+                if (list == null)
+                    list = new List<TSource>();
+                list[count++] = item;
+                if (count.Equals(separator))
+                    break;
 
+                yield return list;
+            }
+        }
+        public static IEnumerable<TSource> Take<TSource>(this IEnumerable<TSource> source, int minIndex, int maxIndex)
+        {
+            var buffer = source.ToList();
+            var list = new List<TSource>();
+            for (int i = 0; i < buffer.Count; i++)
+            {
+                if (buffer.IndexOf(buffer[i]) <= maxIndex && buffer.IndexOf(buffer[i]) >= minIndex) { list.Add(buffer[i]); }
+            }
+            return list;
+        }
+        public static IEnumerable<TSource> Trace<TSource>(this IEnumerable<TSource> source, 
+            Func<TSource, string> predicate)
+        {
+            foreach (TSource element in source)
+            {
+                predicate(element);
+                Console.WriteLine(predicate(element));
+                yield return element;
+            }
+        }
     }
 }
+
+        
+
