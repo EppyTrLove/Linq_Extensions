@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Drawing;
+using static Extensions.LinqExtensions;
 
 namespace Extensions
 {
@@ -38,6 +39,10 @@ namespace Extensions
                 throw new Exception();
 
             return source;
+        }
+        public static bool Any<TSource>(this IEnumerable<TSource> source, long count)
+        {
+            return source.Count() == count;
         }
         public static IEnumerable<IEnumerable<TSource>> Batch<TSource>(
                   this IEnumerable<TSource> source, int size)
@@ -112,13 +117,19 @@ namespace Extensions
             }
             return list;
         }
-        public static IEnumerable<TSource> Trace<TSource>(this IEnumerable<TSource> source, 
-            Func<TSource, string> predicate)
+
+
+        public static IEnumerable<TSource> Trace<TSource>(this IEnumerable<TSource> source, string line, 
+            Action<TSource> predicate)
         {
+            static void MyDelegeteMethod(TSource line)
+            {
+                Console.WriteLine(line);
+            }
+            predicate = MyDelegeteMethod;
             foreach (TSource element in source)
             {
                 predicate(element);
-                Console.WriteLine(predicate(element));
                 yield return element;
             }
         }
