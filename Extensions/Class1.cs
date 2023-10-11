@@ -40,9 +40,21 @@ namespace Extensions
 
             return source;
         }
-        public static bool Any<TSource>(this IEnumerable<TSource> source, long count)
+        public static bool Any<TSource>(this IEnumerable<TSource> source, long inCount)
         {
-            return source.Count() == count;
+            var buffer = source.ToList();
+            var equalsElemntCount = 0;
+            for (var i = 0; i < buffer.Count(); i ++)
+            {
+                for(var j = i+1; j < buffer.Count(); j++)
+                {
+                    if (buffer[i].Equals(buffer[j]))
+                    {
+                        equalsElemntCount++;
+                    }
+                }              
+            }
+            return equalsElemntCount == inCount;
         }
         public static IEnumerable<IEnumerable<TSource>> Batch<TSource>(
                   this IEnumerable<TSource> source, int size)
@@ -117,8 +129,6 @@ namespace Extensions
             }
             return list;
         }
-
-
         public static IEnumerable<TSource> Trace<TSource>(this IEnumerable<TSource> source, string line, 
             Action<TSource> predicate)
         {
