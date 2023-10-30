@@ -6,10 +6,17 @@ namespace Extensions
 {
     public static class LinqExtensions
     {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="TSource"></typeparam>
+        /// <param name="source"></param>
+        /// <param name="predicate"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentException"> source or predicate is null</exception>
         public static IEnumerable<TSource> Enshure<TSource>(this IEnumerable<TSource> source, Func<TSource,
             bool> predicate)
         {
-
             if (source == null)
                 throw new ArgumentException();
 
@@ -23,8 +30,6 @@ namespace Extensions
                     yield return element;
                 }
             }
-
-            throw new ArgumentException();
         }
         public static IEnumerable<TSource> EnshureCount<TSource>(this IEnumerable<TSource> source,
             Func<TSource, bool> predicate, long count)
@@ -40,21 +45,13 @@ namespace Extensions
 
             return source;
         }
-        public static bool Any<TSource>(this IEnumerable<TSource> source, long inCount)
+        public static bool Any<TSource>(this IEnumerable<TSource> source, Predicate<TSource> getter)
         {
-            var buffer = source.ToList();
-            var equalsElemntCount = 0;
-            for (var i = 0; i < buffer.Count(); i ++)
+            foreach (var item in source)
             {
-                for(var j = i+1; j < buffer.Count(); j++)
-                {
-                    if (buffer[i].Equals(buffer[j]))
-                    {
-                        equalsElemntCount++;
-                    }
-                }              
-            }
-            return equalsElemntCount == inCount;
+                if(getter(item)) return true;
+            }      
+            return false;
         }
         public static IEnumerable<IEnumerable<TSource>> Batch<TSource>(
                   this IEnumerable<TSource> source, int size)
@@ -74,7 +71,7 @@ namespace Extensions
                 yield return bucket;
             }
         }
-        public static bool IsEmpty<TSource>(this IEnumerable<TSource> source) => source == null || source.Count() == 0;
+        public static bool IsEmpty<TSource>(this IEnumerable<TSource> source) => source == null || source.Any();
 
         public static IEnumerable<TSource> Apply<TSource>(this IEnumerable<TSource> source, Action<TSource> predicate)
         {
